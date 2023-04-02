@@ -1,0 +1,8 @@
+{
+  "name": "imgcrawler",
+  "version": "1.0.0",
+  "dependencies": {
+    "jQuery": "^1.7.4",
+    "vue": "^3.2.47"
+  }
+}

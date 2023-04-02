@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <script type="module" th:src="@{/scripts/script.js}"></script>
+    <script type="module" th:src="@{/scripts/vue.js}"></script>
+    <script type="module" th:src="@{/scripts/jquery.js}"></script>
+    <link rel="stylesheet" th:href="@{/styles/style.css}">
+    <title>ImageHero</title>
+</head>
+<body>
+    <h1 style="text-align: center">ImageHero</h1>
+    <hr style="border: 2px solid green; background: green" >
+    <div id="app">
+        <div style="border: 5px double black; padding: 5px 5px 5px 5px">
+            <div>
+                <button id="download" v-on:click="featureSelect('download')">Download</button>
+                <a>&nbsp;Download pictures from</a> <a href="https://www.pixiv.net">www.pixiv.net</a> <a> and store it to database</a>
+            </div>
+            <br/>
+            <div>
+                <button id="search" v-on:click="featureSelect('search')">Search</button>
+                <a>&nbsp;Search for  the sources of your picture</a>
+            </div>
+            <br/>
+            <div>
+                <button id="database" v-on:click="featureSelect('database')">My artworks</button>
+                <a>&nbsp;Show saved artworks</a>
+            </div>
+        </div>
+        <hr style="border: 2px solid green; background: green" >
+        <br/>
+        <div class="download" v-show="isDownload">
+            <a>Artwork pixiv id: </a>
+            <input type="text" id="pid" name="pictureId" ><br/><br/>
+            <a>Account login cookie: </a>
+            <input type="text" id="cookie" name="loginCookie" size="80 px">
+            <br/><br/>
+            <input type="submit" value="Get My Picture!" v-on:click="getImageData()">
+            <a>&nbsp;&nbsp;&nbsp;&nbsp;</a>
+            <label id="err" style="color: red">{{ errLabelText }}</label>
+            <br/>
+            <div id="downloadResult" hidden>
+                <p>Done!</p>
+                <p id="downloadTime">{{ downloadTime }}</p>
+                <p>Here's the picture you want:</p>
+                <img id="image" style="width: 50%; height: auto" alt=""/>
+                <br/><br/>
+                <a>You can </a>
+                <a id="localBtn" href="" download="">
+                    <button class="dbBtn"> save it to your local device</button>
+                </a>
+                <a> or </a>
+                <button class="dbBtn" v-on:click="setDatabaseBtn()"> save it to database</button>
+                <br/>
+                <label id="dbMsg">{{ dbMsg }}</label>
+                <br/><br/><br/>
+            </div>
+        </div>
+        <div class="search" v-if="isSearch">
+            <a>Select your image:</a>
+            <input type="file" id="imageFile" name="imageFile" accept="image/*">
+            <p>OR</p>
+            <a>Provide the image url: </a>
+            <input type="url" id="imgUrl" name="imageUrl" size="50 px"><br/><br/>
+            <input type="submit" value="Get Me The Source!" v-on:click="getSource()">
+            <a id="searchInputErrorMsg">{{ searchInputErrorMsg }}</a>
+            <br/><br/>
+            <table v-show="searchDone">
+                <thead>
+                    <tr>
+                        <th>Similarity</th>
+                        <th>Thumbnail</th>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Links</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="res in searchResult">
+                        <td>{{ res.similarity }}%</td>
+                        <td>
+                            <img v-bind:src="res.thumbnail" alt="" style="width: 150px; height: auto">
+                        </td>
+                        <td>{{ res.title }}</td>
+                        <td>{{ res.author }}</td>
+                        <td>
+                            <div v-for="(link, index) in res.urls">
+                                <a v-bind:href=link target="_blank">Source {{ index }}</a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="database" v-if="isDatabase">
+
+        </div>
+    </div>
+</body>
+</html>
