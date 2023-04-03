@@ -45,7 +45,7 @@ const vue = new Vue({
             $.ajax({
                 type: 'PUT',
                 contentType: 'application/hal+json',
-                url: 'http://192.168.4.90:114/services/download/' + pidText,
+                url: 'http://uzuki.me:114/services/download/' + pidText,
                 data: JSON.stringify({'cookie' : cookie}),
                 success: function (response, textStatus, xhr) {
                     $("#downloadResult").show();
@@ -86,7 +86,7 @@ const vue = new Vue({
             $.ajax({
                 type: 'POST',
                 contentType: 'application/json',
-                url: 'http://192.168.4.90:114/database/add',
+                url: 'http://uzuki.me:114/database/add',
                 data: store.state.imageData,
                 success: function (response, textStatus, xhr) {
                     console.log(response);
@@ -111,7 +111,6 @@ const vue = new Vue({
                     return;
                 }
 
-
             } else if (file) {
                 if(url !== '') {
                     this.searchInputErrorMsg = 'Enter one source of file only!'
@@ -127,7 +126,7 @@ const vue = new Vue({
                     contentType: false,
                     processData: false,
                     cache: false,
-                    url: 'http://192.168.4.90:114/services/search',
+                    url: 'http://uzuki.me:114/services/search',
                     data: fd,
                     success: function (response, textStatus, xhr) {
                         console.log(response);

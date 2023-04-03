@@ -1,15 +1,10 @@
 package com.project.imgcrawler.controller;
 
 import com.project.imgcrawler.services.*;
-import okhttp3.MultipartBody;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.RepresentationModel;
-import org.springframework.hateoas.mediatype.hal.HalModelBuilder;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,10 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -30,7 +22,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Controller
 @RequestMapping("/services")
 @ResponseBody
-@CrossOrigin
+//@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class ServiceController {
     @Autowired
     PixivDownloadService pixivDownloadService;
@@ -53,10 +45,10 @@ public class ServiceController {
     }
 
     @PostMapping(value = "/search", produces = "application/hal+json")
-    public CollectionModel<SauceNaoResult> search(@RequestParam(name = "imageFile", required = false) MultipartFile multipartFile, @RequestBody (required = false) String imgUrl) throws IOException {
+    public CollectionModel<SauceNaoResult> search(@RequestParam(name = "imageFile", required = false) MultipartFile multipartFile, @RequestBody(required = false) String imgUrl) throws IOException {
         File convFile = null;
         String imgFormat = "";
-        if(multipartFile != null) {
+        if (multipartFile != null) {
             String multipartName = Objects.requireNonNull(multipartFile.getOriginalFilename());
             imgFormat = multipartName.substring(multipartName.lastIndexOf('.') + 1);
             convFile = new File("temp." + imgFormat);
