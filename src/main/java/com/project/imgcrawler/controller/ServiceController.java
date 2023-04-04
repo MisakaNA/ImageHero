@@ -22,7 +22,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Controller
 @RequestMapping("/services")
 @ResponseBody
-//@CrossOrigin(origins = "*", allowedHeaders = "*")
+@CrossOrigin
 public class ServiceController {
     @Autowired
     PixivDownloadService pixivDownloadService;
@@ -57,8 +57,10 @@ public class ServiceController {
             fos.write(multipartFile.getBytes());
             fos.close();
         }
-        searchResults = sourceSearchService.search(convFile, imgFormat, imgUrl);
-        convFile.delete();
+        searchResults = sourceSearchService.search(convFile, imgFormat, imgUrl.substring(imgUrl.indexOf('=') + 1));
+        if(convFile != null) {
+            convFile.delete();
+        }
         Link link = linkTo(methodOn(ServiceController.class).search(multipartFile, imgUrl)).withSelfRel();
         Link rootlink = linkTo(ServiceController.class).withRel("root");
         return CollectionModel.of(searchResults.getSearchResults(), List.of(link, rootlink));

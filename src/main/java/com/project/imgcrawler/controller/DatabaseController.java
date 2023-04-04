@@ -18,7 +18,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Controller
 @RequestMapping("/database")
 @ResponseBody
-//@CrossOrigin(origins = "*", allowedHeaders = "*")
+@CrossOrigin
 public class DatabaseController {
 
     @Autowired
