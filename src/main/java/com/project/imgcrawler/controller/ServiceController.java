@@ -57,7 +57,10 @@ public class ServiceController {
             fos.write(multipartFile.getBytes());
             fos.close();
         }
-        searchResults = sourceSearchService.search(convFile, imgFormat, imgUrl.substring(imgUrl.indexOf('=') + 1));
+        if (imgUrl != null) {
+            imgUrl = imgUrl.substring(imgUrl.indexOf('=') + 1);
+        }
+        searchResults = sourceSearchService.search(convFile, imgFormat, imgUrl);
         if(convFile != null) {
             convFile.delete();
         }
