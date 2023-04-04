@@ -4,6 +4,7 @@ import com.project.imgcrawler.services.PixivImage;
 import com.project.imgcrawler.services.PixivImages;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -25,9 +27,9 @@ public class DatabaseController {
     JdbcTemplate jdbcTemplate;
 
     @PostMapping("/add")
-    public PixivImages addRecord(@RequestBody PixivImage image) {
+    public CollectionModel<PixivImage> addRecord(@RequestBody PixivImage image) {
         if (image == null || image.getPid().equals("")) {
-            return new PixivImages(new ArrayList<>());
+            return CollectionModel.of(new ArrayList<>());
         }
         String fetchSqlString = "SELECT pid, image_format, image_base64_string, download_time FROM my_favorite_artworks WHERE pid = ?";
 
@@ -59,15 +61,14 @@ public class DatabaseController {
     }
 
     @GetMapping("/images")
-    public PixivImages fetchAll() {
+    public CollectionModel<PixivImage> fetchAll() {
         String fetchSqlString = "SELECT pid, image_format, image_base64_string, download_time FROM my_favorite_artworks";
         PixivImages pixivImages = new PixivImages(jdbcTemplate.query(fetchSqlString, rowMapper()));
         for (PixivImage image : pixivImages.getImageList()) {
             image.add(linkTo(methodOn(DatabaseController.class).fetchImage(image.getPid())).withSelfRel());
             image.add(linkTo(methodOn(DatabaseController.class).fetchAll()).withRel("super"));
         }
-        pixivImages.add(linkTo(methodOn(DatabaseController.class).fetchAll()).withSelfRel());
-        return pixivImages;
+        return CollectionModel.of(pixivImages.getImageList(), List.of(linkTo(methodOn(DatabaseController.class).fetchAll()).withSelfRel()));
     }
 
     @DeleteMapping("/image/{pid}")
@@ -87,9 +88,12 @@ public class DatabaseController {
         return ((rs, rowNum) ->
                 new PixivImage(
                         rs.getString("pid"),
+                        rs.getString("title"),
+                        rs.getString("author"),
                         rs.getString("image_format"),
                         rs.getString("image_base64_string"),
-                        rs.getTimestamp("download_time").toLocalDateTime()
+                        rs.getTimestamp("download_time").toLocalDateTime(),
+                        rs.getString("imgUrl")
                 ));
     }
 }

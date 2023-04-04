@@ -30,7 +30,7 @@
         </div>
         <hr style="border: 2px solid green; background: green" >
         <br/>
-        <div id="download" class="download" v-show="isDownload">
+        <div id="download" name="download" class="download" v-show="isDownload">
             <a>Artwork pixiv id: </a>
             <input type="text" id="pid" name="pictureId" ><br/><br/>
             <a>Account login cookie: </a>
@@ -96,8 +96,33 @@
                 </tbody>
             </table>
         </div>
-        <div id="database" class="database" v-show="isDatabase">
-
+        <div id="database" name="database" class="database" v-show="isDatabase" >
+            <table v-show="fetchDone">
+                <thead>
+                <tr>
+                    <th>Pixiv ID</th>
+                    <th>Thumbnail</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Links</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="res in searchResult">
+                    <td>{{ res.similarity }}%</td>
+                    <td>
+                        <img v-bind:src="res.thumbnail" alt="" style="width: 150px; height: auto">
+                    </td>
+                    <td>{{ res.title }}</td>
+                    <td>{{ res.author }}</td>
+                    <td>
+                        <div v-for="(link, index) in res.urls">
+                            <a v-bind:href=link target="_blank">Source {{ index }}</a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </body>

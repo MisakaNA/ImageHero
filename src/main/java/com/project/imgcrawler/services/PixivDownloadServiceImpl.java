@@ -35,9 +35,9 @@ public class PixivDownloadServiceImpl implements PixivDownloadService {
     }
 
     public PixivImage img_download(String loginCookie, String pid) throws IOException {
-        String imgUrl = getPictureUrl(loginCookie, pid);
-        String imgFormat = imgUrl.substring(imgUrl.lastIndexOf(".") + 1);
-        URL url = new URL(imgUrl);
+        PixivImage pixivImage = getPictureUrl(loginCookie, pid);
+        String imgFormat = pixivImage.getImgUrl().substring(pixivImage.getImgUrl().lastIndexOf(".") + 1);
+        URL url = new URL(pixivImage.getImgUrl());
         HttpURLConnection res = (HttpURLConnection) url.openConnection();
 
         res.setRequestMethod("GET");
@@ -49,7 +49,10 @@ public class PixivDownloadServiceImpl implements PixivDownloadService {
 
         if (res.getResponseCode() == 200) {
             String base64ImageString = Base64.getEncoder().encodeToString(writeImgByteArray(res));
-            return new PixivImage(pid, imgFormat, base64ImageString, LocalDateTime.now());
+            pixivImage.setImgFormat(imgFormat);
+            pixivImage.setImageBase64(base64ImageString);
+            pixivImage.setDownloadTime(LocalDateTime.now());
+            return pixivImage;
         } else {
             System.out.println("Debug: Error, unable to download the picture!");
         }
@@ -57,7 +60,7 @@ public class PixivDownloadServiceImpl implements PixivDownloadService {
         return new PixivImage();
     }
 
-    private String getPictureUrl(String loginCookie, String pid) throws IOException {
+    private PixivImage getPictureUrl(String loginCookie, String pid) throws IOException {
         String url = String.format("https://www.pixiv.net/ajax/illust/%s?lang=zh", pid);
 
         String document = Jsoup.connect(url)
@@ -65,11 +68,19 @@ public class PixivDownloadServiceImpl implements PixivDownloadService {
                 .ignoreContentType(true)
                 .execute().body();
 
-        JSONObject json = new JSONObject(document);
-        String imgUrl = json.getJSONObject("body").getJSONObject("urls").getString("original");
+        JSONObject json = new JSONObject(document).getJSONObject("body");
+        String imgUrl = json.getJSONObject("urls").getString("original");
+        String title = json.getString("illustTitle");
+        String author = json.getString("userName");
+
         System.out.println("Debug: Successfully retrieve image url: " + imgUrl);
 
-        return imgUrl;
+        PixivImage pixivImage = new PixivImage();
+        pixivImage.setPid(pid);
+        pixivImage.setImgUrl(imgUrl);
+        pixivImage.setAuthor(author);
+        pixivImage.setTitle(title);
+        return pixivImage;
     }
 
     private byte[] writeImgByteArray(HttpURLConnection res) throws IOException {

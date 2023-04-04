@@ -77,6 +77,7 @@ const vue = new Vue({
                 this.isDownload = false;
                 this.isSearch = false;
                 this.isDatabase = true;
+                this.fetchAllData();
             }
         },
 
@@ -158,7 +159,7 @@ const vue = new Vue({
                         self.searchDone = true;
                     },
                     error: function(xhr, textStatus, errorThrown) {
-                        console.log('Status: ' + textStatus);
+                        console.log('Status: ' + xhr.status);
                         console.log('Error: ' + errorThrown);
 
                     }
@@ -181,14 +182,28 @@ const vue = new Vue({
                         self.searchDone = true;
                     },
                     error: function(xhr, textStatus, errorThrown) {
-                        console.log('Status: ' + textStatus);
+                        console.log('Status: ' + xhr.status);
                         console.log('Error: ' + errorThrown);
 
                     }
                 });
             }
+        },
 
-
+        fetchAllData: function () {
+            const self = this;
+            $.ajax({
+                type: 'GET',
+                contentType: 'application/hal+json',
+                url: 'http://uzuki.me:114/database/images',
+                success: function (response, testStatus, xhr) {
+                    self.databaseEntries = JSON.parse(JSON.stringify(response))._embedded.imageList;
+                },
+                error: function (xhr, testStatus, errorThrown) {
+                    console.log('Status: ' + xhr.status);
+                    console.log('Error: ' + errorThrown);
+                }
+            })
         }
     }
 });
@@ -201,6 +216,7 @@ document.getElementById('app').getElementsByTagName('div').namedItem('search').g
         vue.showSelectedImage('imgUrl');
     }
 });
+
 const store = new Vuex.Store({
     state: {
         imageData: null
@@ -210,4 +226,4 @@ const store = new Vuex.Store({
             state.imageData = data;
         }
     }
-})
+});
