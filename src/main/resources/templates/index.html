@@ -6,12 +6,53 @@
     <script type="module" th:src="@{/scripts/vue.js}"></script>
     <script type="module" th:src="@{/scripts/jquery.js}"></script>
     <link rel="stylesheet" th:href="@{/styles/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <title>ImageHero</title>
 </head>
-<body>
-    <h1 style="text-align: center">ImageHero</h1>
-    <hr style="border: 2px solid green; background: green" >
+<body style="font-family: SansSerif sans-serif">
     <div id="app">
+        <div style="text-align: right">
+            <label v-show="isLoggedin">{{ acctName }}&nbsp;</label>
+            <a v-on:click="logout()" href="#" v-show="isLoggedin">Logout</a>
+            <button v-on:click="login()" v-show="!isLoggedin">Login</button>
+        </div>
+        <div class="popup" v-show="showLogin">
+            <div class="close-button" v-on:click="closeLoginPopup()">&times;</div>
+            <div class="form">
+                <h2 v-show="isRegister">Register</h2>
+                <h2 v-show="isLogin">Log in</h2>
+                <div class="form-element">
+                    <label class="loginLabel">Account name:</label>
+                    <input class="acct" type="text" id="acctName" placeholder="Enter account name" style="width: 230px">
+                </div>
+                <div class="form-element">
+                    <label class="loginLabel">Password:</label>
+                    <input class="pwd" type="password" id="password" placeholder="Enter password" style="width: 230px">
+                </div>
+                <div class="form-element" v-show="isRegister">
+                    <label class="loginLabel">Re-enter Password:</label>
+                    <input class="pwd" type="password" id="re-password" placeholder="Re-enter password" style="width: 230px">
+                </div>
+                <div class="form-element" v-show="isLogin">
+                    <input class="signInBtn" type="submit" value="Sign in" v-on:click="signIn()">
+                </div>
+                <div class="form-element" v-show="isRegister">
+                    <input class="signInBtn" type="submit" value="Register" v-on:click="register()">
+                </div>
+                <div class="form-element" v-show="isLogin">
+                    <a>New here? </a> <a v-on:click="toggleRegister()" href="#">Register</a>
+                </div>
+                <div class="form-element" v-show="isRegister">
+                    <a>Already had an account?</a> <a v-on:click="toggleRegister()" href="#">Log in</a>
+                </div>
+                <div class="form-element">
+                    <label style="color: red">{{ loginMsg }}</label>
+                </div>
+            </div>
+
+        </div>
+        <h1 style="text-align: center">ImageHero</h1>
+        <hr style="border: 2px solid green; background: green" >
         <div style="border: 5px double black; padding: 5px 5px 5px 5px">
             <div>
                 <button id="downloadFeatureBtn" v-on:click="featureSelect('downloadFeatureBtn')">Download</button>
@@ -32,14 +73,16 @@
         <br/>
         <div id="download" name="download" class="download" v-show="isDownload">
             <a>Artwork pixiv id: </a>
-            <input type="text" id="pid" name="pictureId" ><br/><br/>
+            <input type="text" id="pid" name="pictureId" >
+            <br/><br/>
             <a>Account login cookie: </a>
             <input type="text" id="cookie" name="loginCookie" size="80 px">
             <br/><br/>
-            <input type="submit" value="Get My Picture!" v-on:click="getImageData()">
+            <input id="downloadSubmit" type="submit" value="Get My Picture!" v-on:click="getImageData()">
             <a>&nbsp;&nbsp;&nbsp;&nbsp;</a>
             <label id="err" style="color: red">{{ errLabelText }}</label>
-            <br/>
+            <br/> <br v-show="downloadLoader" />
+            <div id="dLoader" class="loader" v-show="downloadLoader"></div>
             <div id="downloadResult" hidden>
                 <p>Done!</p>
                 <p id="downloadTime">{{ downloadTime }}</p>
@@ -58,7 +101,7 @@
             </div>
         </div>
         <div id="search" name="search" class="search" v-show="isSearch">
-            <div id="imgDiv" style="width: 170px; height: 170px;" v-show="selectedSearchImage">
+            <div id="imgDiv" style="width: 170px; height: 170px; text-align: center;" v-show="selectedSearchImage">
                 <img id="searchImage" src="#" style="max-width: 150px; max-height: 150px; width: auto; height: auto;">
             </div>
             <a>Select your image:</a>
@@ -69,9 +112,11 @@
             <input type="submit" value="Get Me The Source!" v-on:click="getSource()">
             <a id="searchInputErrorMsg" style="color: red;">&nbsp;{{ searchInputErrorMsg }}</a>
             <br/><br/>
+            <br v-show="searchLoader" />
+            <div id="sLoader" class="loader" v-show="searchLoader"></div>
             <table v-show="searchDone">
                 <thead>
-                    <tr>
+                    <tr class="str">
                         <th>Similarity</th>
                         <th>Thumbnail</th>
                         <th>Title</th>
@@ -81,13 +126,13 @@
                 </thead>
                 <tbody>
                     <tr v-for="res in searchResult">
-                        <td>{{ res.similarity }}%</td>
-                        <td>
+                        <td class="std">{{ res.similarity }}%</td>
+                        <td class="std">
                             <img v-bind:src="res.thumbnail" alt="" style="width: 150px; height: auto">
                         </td>
-                        <td>{{ res.title }}</td>
-                        <td>{{ res.author }}</td>
-                        <td>
+                        <td class="std">{{ res.title }}</td>
+                        <td class="std">{{ res.author }}</td>
+                        <td class="std">
                             <div v-for="(link, index) in res.urls">
                                 <a v-bind:href=link target="_blank">Source {{ index }}</a>
                             </div>
@@ -97,32 +142,43 @@
             </table>
         </div>
         <div id="database" name="database" class="database" v-show="isDatabase" >
+            <br/> <br v-show="databaseLoader" />
+            <div id="dbLoader" class="loader" v-show="databaseLoader"></div>
             <table v-show="fetchDone">
                 <thead>
-                <tr>
-                    <th>Pixiv ID</th>
-                    <th>Thumbnail</th>
-                    <th>Title</th>
-                    <th>Author</th>
-                    <th>Links</th>
-                </tr>
+                    <tr>
+                        <th class="dbText">Pixiv ID</th>
+                        <th class="dbText">Title</th>
+                        <th class="dbText">Author</th>
+                        <th>Thumbnail</th>
+                        <th style="width: 80px; text-align: center; vertical-align: center;">Format</th>
+                        <th>Time Added</th>
+                        <th class="dbText">Operation</th>
+                    </tr>
                 </thead>
                 <tbody>
-                <tr v-for="res in searchResult">
-                    <td>{{ res.similarity }}%</td>
-                    <td>
-                        <img v-bind:src="res.thumbnail" alt="" style="width: 150px; height: auto">
-                    </td>
-                    <td>{{ res.title }}</td>
-                    <td>{{ res.author }}</td>
-                    <td>
-                        <div v-for="(link, index) in res.urls">
-                            <a v-bind:href=link target="_blank">Source {{ index }}</a>
-                        </div>
-                    </td>
-                </tr>
+                    <tr v-for="entry in databaseEntries">
+                        <td class="dbText">{{ entry.pid }}</td>
+                        <td class="dbText">{{ entry.title }}</td>
+                        <td class="dbText">{{ entry.author }}</td>
+                        <td style="width: 300px; padding: 10px 10px 10px 10px; text-align: center;">
+                            <a v-bind:href="'data:image/' + entry.imgFormat + ';base64,' + entry.imageBase64" v-bind:download="entry.pid + '.' + entry.imgFormat" title="click to save locally">
+                                <img id="dbImage" v-bind:src="'data:image/' + entry.imgFormat + ';base64,' + entry.imageBase64" alt="" style="width: auto; max-height: 150px">
+                            </a>
+
+                        </td>
+                        <td style="width: 80px; text-align: center; vertical-align: center;">{{ entry.imgFormat }}</td>
+                        <td style="width: 200px; text-align: center; vertical-align: center;">{{ entry.downloadTime }}</td>
+                        <td style="text-align: center">
+                            <i class="fa fa-trash" style="font-size: large; cursor: pointer;" v-on:click="deleteRecord(entry.pid)" title="remove from database"></i>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
+            <div style="width: max-content; text-align: center" v-show="noData">
+                <br/><br/>
+                <label style="font-size: x-large">No Data</label>
+            </div>
         </div>
     </div>
 </body>

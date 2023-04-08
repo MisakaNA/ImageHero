@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,7 +52,7 @@ public class PixivDownloadServiceImpl implements PixivDownloadService {
             String base64ImageString = Base64.getEncoder().encodeToString(writeImgByteArray(res));
             pixivImage.setImgFormat(imgFormat);
             pixivImage.setImageBase64(base64ImageString);
-            pixivImage.setDownloadTime(LocalDateTime.now());
+            pixivImage.setDownloadTime(LocalDateTime.now().withNano(0));
             return pixivImage;
         } else {
             System.out.println("Debug: Error, unable to download the picture!");

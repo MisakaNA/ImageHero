@@ -1,18 +1,24 @@
 package com.project.imgcrawler.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.project.imgcrawler.services.PixivImage;
 import com.project.imgcrawler.services.PixivImages;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.RepresentationModel;
+import org.springframework.hateoas.mediatype.hal.Jackson2HalModule;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -24,21 +30,23 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class DatabaseController {
 
     @Autowired
-    JdbcTemplate jdbcTemplate;
+    JdbcTemplate artworksJdbcTemplate;
 
     @PostMapping("/add")
-    public CollectionModel<PixivImage> addRecord(@RequestBody PixivImage image) {
+    public CollectionModel<PixivImage> addRecord(@RequestBody Map<String, String> json) throws JsonProcessingException {
+        String uname = json.get("uname");
+        PixivImage image = new ObjectMapper().registerModule(new JavaTimeModule()).registerModule(new Jackson2HalModule()).readValue(json.get("image"), PixivImage.class);//json.get("image");
         if (image == null || image.getPid().equals("")) {
             return CollectionModel.of(new ArrayList<>());
         }
-        String fetchSqlString = "SELECT pid, image_format, image_base64_string, download_time FROM my_favorite_artworks WHERE pid = ?";
+        String fetchSqlString = "SELECT pid, title, author, image_format, image_base64_string, download_time, image_url FROM " + uname + "_favorite_artworks WHERE pid = ?";
 
         try {
-            jdbcTemplate.queryForObject(fetchSqlString, rowMapper(), Integer.parseInt(image.getPid()));
+            artworksJdbcTemplate.queryForObject(fetchSqlString, rowMapper(), Integer.parseInt(image.getPid()));
         } catch (EmptyResultDataAccessException e) {
-            String addSqlString = "INSERT INTO my_favorite_artworks (pid, image_format, image_base64_string, download_time) VALUES (?, ?, ?, ?)";
-            jdbcTemplate.update(addSqlString, Integer.parseInt(image.getPid()), image.getImgFormat(), image.getImageBase64(), image.getDownloadTime());
-            return fetchAll();
+            String addSqlString = "INSERT INTO " + uname + "_favorite_artworks (pid, title, author, image_format, image_base64_string, download_time, image_url) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            artworksJdbcTemplate.update(addSqlString, Integer.parseInt(image.getPid()), image.getTitle(), image.getAuthor(), image.getImgFormat(), image.getImageBase64(), image.getDownloadTime(), image.getImgUrl());
+            return fetchAll(Map.of("uname", uname));
         }
 
         return null;
@@ -52,36 +60,37 @@ public class DatabaseController {
         } catch (NumberFormatException nfe) {
             return null;
         }
-        String fetchSqlString = "SELECT pid, image_format, image_base64_string, download_time FROM my_favorite_artworks WHERE pid = ?";
-        PixivImage fetchResult = jdbcTemplate.queryForObject(fetchSqlString, rowMapper(), pidNum);
+        String fetchSqlString = "SELECT pid, title, author, image_format, image_base64_string, download_time, image_url FROM my_favorite_artworks WHERE pid = ?";
+        PixivImage fetchResult = artworksJdbcTemplate.queryForObject(fetchSqlString, rowMapper(), pidNum);
         if (fetchResult != null) {
             fetchResult.add(linkTo(methodOn(DatabaseController.class).fetchImage(pid)).withSelfRel());
         }
         return fetchResult;
     }
 
-    @GetMapping("/images")
-    public CollectionModel<PixivImage> fetchAll() {
-        String fetchSqlString = "SELECT pid, image_format, image_base64_string, download_time FROM my_favorite_artworks";
-        PixivImages pixivImages = new PixivImages(jdbcTemplate.query(fetchSqlString, rowMapper()));
+    @PostMapping("/images")
+    public CollectionModel<PixivImage> fetchAll(@RequestBody Map<String, String> json) {
+        String uname = json.get("uname");
+        String fetchSqlString = "SELECT pid, title, author, image_format, image_base64_string, download_time, image_url FROM " + uname + "_favorite_artworks";
+        PixivImages pixivImages = new PixivImages(artworksJdbcTemplate.query(fetchSqlString, rowMapper()));
         for (PixivImage image : pixivImages.getImageList()) {
             image.add(linkTo(methodOn(DatabaseController.class).fetchImage(image.getPid())).withSelfRel());
-            image.add(linkTo(methodOn(DatabaseController.class).fetchAll()).withRel("super"));
+            image.add(linkTo(methodOn(DatabaseController.class).fetchAll(Map.of("uname", uname))).withRel("super"));
         }
-        return CollectionModel.of(pixivImages.getImageList(), List.of(linkTo(methodOn(DatabaseController.class).fetchAll()).withSelfRel()));
+        return CollectionModel.of(pixivImages.getImageList(), List.of(linkTo(methodOn(DatabaseController.class).fetchAll(Map.of("uname", uname))).withSelfRel()));
     }
 
     @DeleteMapping("/image/{pid}")
-    public void deleteImage(@PathVariable String pid) {
+    public CollectionModel<PixivImage> deleteImage(@PathVariable String pid, @RequestBody String uname) {
         int pidNum;
         try {
             pidNum = Integer.parseInt(pid);
         } catch (NumberFormatException nfe) {
-            return;
+            return CollectionModel.of(new ArrayList<>());
         }
         String deleteSqlString = "DELETE FROM my_favorite_artworks WHERE pid = ?";
-        jdbcTemplate.update(deleteSqlString, pidNum);
-
+        artworksJdbcTemplate.update(deleteSqlString, pidNum);
+        return fetchAll(Map.of("uname", uname));
     }
 
     private RowMapper<PixivImage> rowMapper() {
@@ -93,7 +102,7 @@ public class DatabaseController {
                         rs.getString("image_format"),
                         rs.getString("image_base64_string"),
                         rs.getTimestamp("download_time").toLocalDateTime(),
-                        rs.getString("imgUrl")
+                        rs.getString("image_url")
                 ));
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -39,7 +40,7 @@ public class ServiceController {
 
         downloadImage = pixivDownloadService.img_download(loginCookie, pid);
         downloadImage.add(linkTo(methodOn(ServiceController.class).download(loginCookie, pid)).withSelfRel());
-        downloadImage.add(linkTo(methodOn(DatabaseController.class).addRecord(downloadImage)).withRel("save"));
+        downloadImage.add(linkTo(methodOn(DatabaseController.class).addRecord(new HashMap<>())).withRel("save"));
         downloadImage.add(linkTo(ServiceController.class).withRel("root"));
         return downloadImage;
     }

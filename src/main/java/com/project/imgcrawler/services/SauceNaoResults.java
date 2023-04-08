@@ -50,19 +50,23 @@ public class SauceNaoResults extends RepresentationModel<SauceNaoResults> {
     }
 
     private String parseTitle(JSONObject object) {
-        if (object.has("title")) {
-            return object.getString("title");
-        } else if (object.has("eng_name")) {
-            return object.getString("eng_name");
-        } else if (object.has("material")) {
-            return object.getString("material");
-        } else if (object.has("source")) {
-            return object.getString("source");
-        } else if (object.has("created_at")) {
-            return object.getString("created_at");
+        try {
+            if (object.has("title")) {
+                return object.getString("title");
+            } else if (object.has("eng_name")) {
+                return object.getString("eng_name");
+            } else if (object.has("material")) {
+                return object.getString("material");
+            } else if (object.has("source")) {
+                return object.getString("source");
+            } else if (object.has("created_at")) {
+                return object.getString("created_at");
+            }
+        } catch (JSONException je) {
+            return "N/A";
         }
 
-        return null;
+        return "N/A";
 
     }
 
@@ -83,27 +87,32 @@ public class SauceNaoResults extends RepresentationModel<SauceNaoResults> {
         return new ArrayList<>();
     }
 
-    private String parseAuthor(JSONObject object) {
-        if (object.has("author")) {
-            return object.getString("author");
-        } else if (object.has("author_name")) {
-            return object.getString("author_name");
-        } else if (object.has("member_name")) {
-            return object.getString("member_name");
-        } else if (object.has("pawoo_user_username")) {
-            return object.getString("pawoo_user_username");
-        } else if (object.has("twitter_user_handle")) {
-            return object.getString("twitter_user_handle");
-        } else if (object.has("company")) {
-            return object.getString("company");
-        } else if (object.has("creator")) {
-            try {
-                JSONArray creatorArray = object.getJSONArray("creator");
-                return creatorArray.getString(0);
-            } catch (JSONException je) {
-                return object.getString("creator");
+    private String parseAuthor(JSONObject object) throws JSONException {
+        try {
+            if (object.has("author")) {
+                return object.getString("author");
+            } else if (object.has("author_name")) {
+                return object.getString("author_name");
+            } else if (object.has("member_name")) {
+                return object.getString("member_name");
+            } else if (object.has("pawoo_user_username")) {
+                return object.getString("pawoo_user_username");
+            } else if (object.has("twitter_user_handle")) {
+                return object.getString("twitter_user_handle");
+            } else if (object.has("company")) {
+                return object.getString("company");
+            } else if (object.has("creator")) {
+                try {
+                    JSONArray creatorArray = object.getJSONArray("creator");
+                    return creatorArray.getString(0);
+                } catch (JSONException je) {
+                    return object.getString("creator");
+                }
             }
+        } catch (JSONException je) {
+            return "N/A";
         }
+
 
         return null;
     }
