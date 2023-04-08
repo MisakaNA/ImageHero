@@ -135,7 +135,7 @@ const vue = new Vue({
                 type: 'PUT',
                 contentType: 'application/hal+json',
                 url: 'http://uzuki.me:114/services/download/' + pidText,
-                data: JSON.stringify({'cookie' : cookie}),
+                data: cookie,
                 success: function (response, textStatus, xhr) {
                     $("#downloadResult").show();
                     this.imageData = JSON.parse(JSON.stringify(response));
@@ -329,6 +329,7 @@ const vue = new Vue({
                 type: 'DELETE',
                 contentType: 'application/hal+json',
                 url: 'http://uzuki.me:114/database/image/' + pid,
+                data: store.state.account,
                 success: function (response, testStatus, xhr) {
                     try {
                         self.databaseEntries = JSON.parse(JSON.stringify(response))._embedded.pixivImageList;

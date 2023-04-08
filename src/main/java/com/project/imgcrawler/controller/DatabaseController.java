@@ -53,17 +53,17 @@ public class DatabaseController {
     }
 
     @GetMapping("/image/{pid}")
-    public RepresentationModel<PixivImage> fetchImage(@PathVariable String pid) {
+    public RepresentationModel<PixivImage> fetchImage(@PathVariable String pid, @RequestBody String uname) {
         int pidNum;
         try {
             pidNum = Integer.parseInt(pid);
         } catch (NumberFormatException nfe) {
             return null;
         }
-        String fetchSqlString = "SELECT pid, title, author, image_format, image_base64_string, download_time, image_url FROM my_favorite_artworks WHERE pid = ?";
+        String fetchSqlString = "SELECT pid, title, author, image_format, image_base64_string, download_time, image_url FROM " + uname + "_favorite_artworks WHERE pid = ?";
         PixivImage fetchResult = artworksJdbcTemplate.queryForObject(fetchSqlString, rowMapper(), pidNum);
         if (fetchResult != null) {
-            fetchResult.add(linkTo(methodOn(DatabaseController.class).fetchImage(pid)).withSelfRel());
+            fetchResult.add(linkTo(methodOn(DatabaseController.class).fetchImage(pid, uname)).withSelfRel());
         }
         return fetchResult;
     }
@@ -74,7 +74,7 @@ public class DatabaseController {
         String fetchSqlString = "SELECT pid, title, author, image_format, image_base64_string, download_time, image_url FROM " + uname + "_favorite_artworks";
         PixivImages pixivImages = new PixivImages(artworksJdbcTemplate.query(fetchSqlString, rowMapper()));
         for (PixivImage image : pixivImages.getImageList()) {
-            image.add(linkTo(methodOn(DatabaseController.class).fetchImage(image.getPid())).withSelfRel());
+            image.add(linkTo(methodOn(DatabaseController.class).fetchImage(image.getPid(), uname)).withSelfRel());
             image.add(linkTo(methodOn(DatabaseController.class).fetchAll(Map.of("uname", uname))).withRel("super"));
         }
         return CollectionModel.of(pixivImages.getImageList(), List.of(linkTo(methodOn(DatabaseController.class).fetchAll(Map.of("uname", uname))).withSelfRel()));
@@ -88,7 +88,7 @@ public class DatabaseController {
         } catch (NumberFormatException nfe) {
             return CollectionModel.of(new ArrayList<>());
         }
-        String deleteSqlString = "DELETE FROM my_favorite_artworks WHERE pid = ?";
+        String deleteSqlString = "DELETE FROM " + uname + "_favorite_artworks WHERE pid = ?";
         artworksJdbcTemplate.update(deleteSqlString, pidNum);
         return fetchAll(Map.of("uname", uname));
     }
