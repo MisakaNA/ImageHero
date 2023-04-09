@@ -114,7 +114,6 @@ const vue = new Vue({
         getImageData: function () {
             this.errLabelText = null;
             const pidText = document.getElementById("pid").value;
-            const cookie = document.getElementById("cookie").value;
             if (pidText.length === 0) {
                 this.errLabelText = 'Error: Pixiv id should not be empty!';
                 return
@@ -125,17 +124,12 @@ const vue = new Vue({
                 return
             }
 
-            if (cookie.length === 0) {
-                this.errLabelText = 'Error: Login cookie should not be empty!';
-                return
-            }
             this.downloadLoader = true;
             const self = this;
             $.ajax({
-                type: 'PUT',
+                type: 'GET',
                 contentType: 'application/hal+json',
                 url: 'http://uzuki.me:114/services/download/' + pidText,
-                data: cookie,
                 success: function (response, textStatus, xhr) {
                     $("#downloadResult").show();
                     this.imageData = JSON.parse(JSON.stringify(response));
@@ -147,7 +141,7 @@ const vue = new Vue({
                     self.downloadLoader = false;
                 },
                 error: function(xhr, textStatus, errorThrown) {
-                    self.errLabelText = 'Error: Response http code ' + xhr.status + '. Unable to get image, please check pixiv id and cookie';
+                    self.errLabelText = 'Error: Response http code ' + xhr.status + '. Unable to get image, please check the pixiv id';
                 }
             });
         },
@@ -408,7 +402,6 @@ const vue = new Vue({
             document.getElementById('imgUrl').value = '';
             document.getElementById('imageFile').value = null;
             document.getElementById("pid").value = '';
-            document.getElementById("cookie").value = '';
             store.commit('storeImageData', '');
         }
     }

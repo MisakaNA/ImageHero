@@ -58,18 +58,18 @@
                 <button id="downloadFeatureBtn" v-on:click="featureSelect('downloadFeatureBtn')">Download</button>
                 <a>&nbsp;Download pictures from</a>
                 <a href="https://www.pixiv.net" target="_blank">www.pixiv.net</a>
-                <a> and store it to database.&nbsp;&nbsp;</a>
+                <a> and store it to the database.&nbsp;&nbsp;</a>
                 <a th:href="@{/how.html}"> How? <i class="fa fa-external-link" aria-hidden="true" style="font-size: 12px"></i></a>
             </div>
             <br/>
             <div>
                 <button id="searchFeatureBtn" v-on:click="featureSelect('searchFeatureBtn')">Search</button>
-                <a>&nbsp;Search for  the sources of your picture</a>
+                <a>&nbsp;Search for the sources of your picture from movies, animes/cartoons, artworks, etc.</a>
             </div>
             <br/>
             <div>
                 <button id="databaseFeatureBtn" v-on:click="featureSelect('databaseFeatureBtn')">My artworks</button>
-                <a>&nbsp;Show saved artworks</a>
+                <a>&nbsp;Show artworks saved in database</a>
             </div>
         </div>
         <hr style="border: 2px solid green; background: green" >
@@ -77,9 +77,6 @@
         <div id="download" name="download" class="download" v-show="isDownload">
             <a>Artwork pixiv id: </a>
             <input type="text" id="pid" name="pictureId" >
-            <br/><br/>
-            <a>Account login cookie: </a>
-            <input type="text" id="cookie" name="loginCookie" size="80 px">
             <br/><br/>
             <input id="downloadSubmit" type="submit" value="Get My Picture!" v-on:click="getImageData()">
             <a>&nbsp;&nbsp;&nbsp;&nbsp;</a>

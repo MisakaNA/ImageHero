@@ -35,14 +35,13 @@ public class PixivDownloadServiceImpl implements PixivDownloadService {
         return cookies;
     }
 
-    public PixivImage img_download(String loginCookie, String pid) throws IOException {
-        PixivImage pixivImage = getPictureUrl(loginCookie, pid);
+    public PixivImage img_download(String pid) throws IOException {
+        PixivImage pixivImage = getPictureUrl(pid);
         String imgFormat = pixivImage.getImgUrl().substring(pixivImage.getImgUrl().lastIndexOf(".") + 1);
         URL url = new URL(pixivImage.getImgUrl());
         HttpURLConnection res = (HttpURLConnection) url.openConnection();
 
         res.setRequestMethod("GET");
-        res.setRequestProperty("cookie", loginCookie);
         res.setRequestProperty("referer", "https://www.pixiv.net/artworks/" + pid);
         res.setConnectTimeout(30000);
         res.setReadTimeout(30000);
@@ -61,11 +60,10 @@ public class PixivDownloadServiceImpl implements PixivDownloadService {
         return new PixivImage();
     }
 
-    private PixivImage getPictureUrl(String loginCookie, String pid) throws IOException {
+    private PixivImage getPictureUrl(String pid) throws IOException {
         String url = String.format("https://www.pixiv.net/ajax/illust/%s?lang=zh", pid);
 
         String document = Jsoup.connect(url)
-                .cookies(setCookies(loginCookie))
                 .ignoreContentType(true)
                 .execute().body();
 

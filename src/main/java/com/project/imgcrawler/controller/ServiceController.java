@@ -32,14 +32,14 @@ public class ServiceController {
     SauceNaoResults searchResults;
     PixivImage downloadImage;
 
-    @PutMapping(value = "/download/{pid}", produces = "application/hal+json")
-    public RepresentationModel<PixivImage> download(@RequestBody String loginCookie, @PathVariable String pid) throws IOException {
+    @GetMapping(value = "/download/{pid}", produces = "application/hal+json")
+    public RepresentationModel<PixivImage> download(@PathVariable String pid) throws IOException {
         if (!pidNumCheck(pid)) {
             return new PixivImage();
         }
 
-        downloadImage = pixivDownloadService.img_download(loginCookie, pid);
-        downloadImage.add(linkTo(methodOn(ServiceController.class).download(loginCookie, pid)).withSelfRel());
+        downloadImage = pixivDownloadService.img_download(pid);
+        downloadImage.add(linkTo(methodOn(ServiceController.class).download(pid)).withSelfRel());
         downloadImage.add(linkTo(methodOn(DatabaseController.class).addRecord(new HashMap<>())).withRel("save"));
         downloadImage.add(linkTo(ServiceController.class).withRel("root"));
         return downloadImage;
@@ -75,11 +75,6 @@ public class ServiceController {
         SauceNaoResult singleResult = searchResults.getSearchResults().get(index);
         singleResult.add(linkTo(methodOn(ServiceController.class).getSearchResult(index)).withSelfRel());
         return singleResult;
-    }
-
-    @GetMapping(value = "/download/{pid}")
-    public RepresentationModel<PixivImage> download(@PathVariable String pid) {
-        return downloadImage;
     }
 
 

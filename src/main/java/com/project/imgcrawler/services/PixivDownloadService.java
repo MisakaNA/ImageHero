@@ -4,6 +4,6 @@ import java.io.IOException;
 
 public interface PixivDownloadService {
 
-    PixivImage img_download(String loginCookie, String pid) throws IOException;
+    PixivImage img_download(String pid) throws IOException;
 
 }
